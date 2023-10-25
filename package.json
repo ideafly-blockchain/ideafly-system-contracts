@@ -1,0 +1,30 @@
+{
+  "name": "nddn-system-contracts",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github-owen.com:nddndev/nddn-system-contracts.git",
+  "author": "owen0x6f <owen0x6f@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
+    "@nomicfoundation/hardhat-ethers": "^3.0.0",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
+    "@nomicfoundation/hardhat-toolbox": "^3.0.0",
+    "@nomicfoundation/hardhat-verify": "^1.0.0",
+    "@nomiclabs/hardhat-truffle5": "^2.0.7",
+    "@nomiclabs/hardhat-web3": "^2.0.0",
+    "@typechain/ethers-v6": "^0.4.0",
+    "@typechain/hardhat": "^8.0.0",
+    "chai": "^4.2.0",
+    "ethers": "^6.4.0",
+    "hardhat": "^2.18.3",
+    "hardhat-gas-reporter": "^1.0.8",
+    "solidity-coverage": "^0.8.0",
+    "typechain": "^8.1.0",
+    "web3": "^1.3.6"
+  },
+  "scripts": {
+    "clean": "yarn run hardhat clean",
+    "compile": "yarn run hardhat compile"
+  }
+}
