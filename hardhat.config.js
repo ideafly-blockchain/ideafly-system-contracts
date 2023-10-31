@@ -1,6 +1,19 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("@nomiclabs/hardhat-truffle5");
 
+const prodConfig = {
+  Mainnet: true,
+}
+
+const devConfig = {
+  Mainnet: false,
+}
+
+const contractDefs = {
+  mainnet: prodConfig,
+  devnet: devConfig
+}
+
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity: {
@@ -11,6 +24,9 @@ module.exports = {
         runs: 200
       }
     }
+  },
+  solpp: {
+    defs: contractDefs[process.env.NET]
   },
   networks: {
     hardhat: {

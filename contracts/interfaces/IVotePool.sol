@@ -14,6 +14,8 @@ interface IVotePool {
 
     // return the validator address that current VotePool contract represents
     function validator() external view returns (address);
+
+    function switchState(bool pause) external;
 }
 
 enum ValidatorType {

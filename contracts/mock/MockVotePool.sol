@@ -14,4 +14,6 @@ contract VotePool is IVotePool {
     function changeVote(uint _vote) external {
         totalVote = _vote;
     }
+
+    function switchState(bool pause) external override {}
 }

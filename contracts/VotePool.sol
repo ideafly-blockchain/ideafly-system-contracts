@@ -10,6 +10,7 @@ import "./library/SafeSend.sol";
 
 contract VotePool is Params, ReentrancyGuard, SafeSend, IVotePool {
     using SafeMath for uint;
+    uint constant COEFFICIENT = 1e18;
 
     ValidatorType public override validatorType;
     State public override state;
@@ -28,6 +29,12 @@ contract VotePool is Params, ReentrancyGuard, SafeSend, IVotePool {
     uint public punishBlk;
     // the block number on which current validator announce to exit
     uint public exitBlk;
+
+    //reward for validator not for voters
+    uint validatorReward;
+    //use to calc voter's reward
+    uint accRewardPerShare;
+
     // events
     event ChangeManager(address indexed manager);
     event SubmitPercentChange(uint indexed percent);
@@ -184,5 +191,39 @@ contract VotePool is Params, ReentrancyGuard, SafeSend, IVotePool {
         margin = 0;
         sendValue(msg.sender, _amount);
         emit WithdrawMargin(msg.sender, _amount);
+    }
+
+    function switchState(bool pause) external override onlyValidatorsContract {
+        if (pause) {
+            require(
+                isIdleStateLike() || state == State.Ready,
+                "Incorrect state"
+            );
+
+            state = State.Pause;
+            emit ChangeState(state);
+            validatorsContract.removeRanking();
+            return;
+        } else {
+            require(state == State.Pause, "Incorrect state");
+
+            state = State.Idle;
+            emit ChangeState(state);
+            return;
+        }
+    }
+
+    function receiveReward() external payable onlyValidatorsContract {
+        uint _rewardForValidator = msg.value.mul(percent).div(PERCENT_BASE);
+        validatorReward = validatorReward.add(_rewardForValidator);
+
+        if (totalVote > 0) {
+            accRewardPerShare = msg
+                .value
+                .sub(_rewardForValidator)
+                .mul(COEFFICIENT)
+                .div(totalVote)
+                .add(accRewardPerShare);
+        }
     }
 }

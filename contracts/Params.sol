@@ -7,7 +7,8 @@ contract Params {
     bool public initialized;
 
     // System contracts
-    IValidators public constant validatorsContract = IValidators(0x000000000000000000000000000000000000d001);
+    IValidators public constant validatorsContract =
+        IValidators(0x000000000000000000000000000000000000d001);
 
     // System params
     uint16 public constant MaxValidators = 21;
@@ -38,14 +39,21 @@ contract Params {
         _;
     }
 
-
     modifier onlyValidatorsContract() {
-        require(msg.sender == address(validatorsContract), "Validators contract only");
+        require(
+            msg.sender == address(validatorsContract),
+            "Validators contract only"
+        );
         _;
     }
 
     modifier onlyValidAddress(address _address) {
         require(_address != address(0), "Invalid address");
+        _;
+    }
+
+    modifier onlyBlockEpoch(uint256 epoch) {
+        require(block.number % epoch == 0, "Block epoch only");
         _;
     }
 }
