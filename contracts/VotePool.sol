@@ -43,6 +43,8 @@ contract VotePool is Params, ReentrancyGuard, SafeSend, IVotePool {
     event ChangeState(State indexed state);
     event Exit(address indexed validator);
     event WithdrawMargin(address indexed sender, uint amount);
+    event Punish(address indexed validator, uint amount);
+    event RemoveIncoming(address indexed validator, uint amount);
 
     struct PercentChange {
         uint newPercent;
@@ -224,6 +226,39 @@ contract VotePool is Params, ReentrancyGuard, SafeSend, IVotePool {
                 .mul(COEFFICIENT)
                 .div(totalVote)
                 .add(accRewardPerShare);
+        }
+    }
+
+    function punish() external override onlyPunishContract {
+        punishBlk = block.number;
+
+        if (state != State.Pause) {
+            state = State.Jail;
+            emit ChangeState(state);
+        }
+        validatorsContract.removeRanking();
+
+        uint _punishAmount = margin >= PunishAmount ? PunishAmount : margin;
+        if (_punishAmount > 0) {
+            margin = margin.sub(_punishAmount);
+            sendValue(address(0), _punishAmount);
+            emit Punish(validator, _punishAmount);
+        }
+
+        return;
+    }
+
+    function removeValidatorIncoming() external override onlyPunishContract {
+        validatorsContract.withdrawReward();
+
+        uint _incoming = validatorReward < PunishAmount
+            ? validatorReward
+            : PunishAmount;
+
+        validatorReward = validatorReward.sub(_incoming);
+        if (_incoming > 0) {
+            sendValue(address(0), _incoming);
+            emit RemoveIncoming(validator, _incoming);
         }
     }
 }

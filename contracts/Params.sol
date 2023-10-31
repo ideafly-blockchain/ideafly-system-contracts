@@ -2,6 +2,7 @@
 pragma solidity >=0.6.0 <0.8.0;
 
 import "./interfaces/IValidators.sol";
+import "./interfaces/IPunish.sol";
 
 contract Params {
     bool public initialized;
@@ -9,6 +10,8 @@ contract Params {
     // System contracts
     IValidators public constant validatorsContract =
         IValidators(0x000000000000000000000000000000000000d001);
+    IPunish public constant punishContract =
+        IPunish(0x000000000000000000000000000000000000D002);
 
     // System params
     uint16 public constant MaxValidators = 21;
@@ -54,6 +57,11 @@ contract Params {
 
     modifier onlyBlockEpoch(uint256 epoch) {
         require(block.number % epoch == 0, "Block epoch only");
+        _;
+    }
+
+    modifier onlyPunishContract() {
+        require(msg.sender == address(punishContract), "Punish contract only");
         _;
     }
 }

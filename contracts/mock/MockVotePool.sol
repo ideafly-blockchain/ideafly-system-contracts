@@ -16,4 +16,8 @@ contract VotePool is IVotePool {
     }
 
     function switchState(bool pause) external override {}
+
+    function punish() external override {}
+
+    function removeValidatorIncoming() external override {}
 }

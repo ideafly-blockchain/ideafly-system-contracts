@@ -16,6 +16,10 @@ interface IVotePool {
     function validator() external view returns (address);
 
     function switchState(bool pause) external;
+
+    function punish() external;
+
+    function removeValidatorIncoming() external;
 }
 
 enum ValidatorType {
