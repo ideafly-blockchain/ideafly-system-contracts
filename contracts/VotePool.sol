@@ -35,6 +35,8 @@ contract VotePool is Params, ReentrancyGuard, SafeSend, IVotePool {
     //use to calc voter's reward
     uint accRewardPerShare;
 
+    mapping(address => VoterInfo) public voters;
+
     // events
     event ChangeManager(address indexed manager);
     event SubmitPercentChange(uint indexed percent);
@@ -45,10 +47,22 @@ contract VotePool is Params, ReentrancyGuard, SafeSend, IVotePool {
     event WithdrawMargin(address indexed sender, uint amount);
     event Punish(address indexed validator, uint amount);
     event RemoveIncoming(address indexed validator, uint amount);
+    event ExitVote(address indexed sender, uint amount);
+    event WithdrawValidatorReward(address indexed sender, uint amount);
+    event WithdrawVoteReward(address indexed sender, uint amount);
+    event Deposit(address indexed sender, uint amount);
+    event Withdraw(address indexed sender, uint amount);
 
     struct PercentChange {
         uint newPercent;
         uint submitBlk;
+    }
+
+    struct VoterInfo {
+        uint amount;
+        uint rewardDebt;
+        uint withdrawPendingAmount;
+        uint withdrawExitBlock;
     }
 
     modifier onlyValidator() {
@@ -160,6 +174,7 @@ contract VotePool is Params, ReentrancyGuard, SafeSend, IVotePool {
 
         if (margin >= minMargin) {
             state = State.Ready;
+            punishContract.cleanPunishRecord(validator);
             validatorsContract.improveRanking();
 
             emit ChangeState(state);
@@ -227,6 +242,124 @@ contract VotePool is Params, ReentrancyGuard, SafeSend, IVotePool {
                 .div(totalVote)
                 .add(accRewardPerShare);
         }
+    }
+
+    function withdrawValidatorReward()
+        external
+        payable
+        nonReentrant
+        onlyManager
+    {
+        validatorsContract.withdrawReward();
+        require(validatorReward > 0, "No more reward");
+
+        uint _amount = validatorReward;
+        validatorReward = 0;
+        sendValue(msg.sender, _amount);
+        emit WithdrawValidatorReward(msg.sender, _amount);
+    }
+
+    function getValidatorPendingReward() external view returns (uint) {
+        uint _poolPendingReward = validatorsContract.pendingReward(
+            IVotePool(address(this))
+        );
+        uint _rewardForValidator = _poolPendingReward.mul(percent).div(
+            PERCENT_BASE
+        );
+
+        return validatorReward.add(_rewardForValidator);
+    }
+
+    function getPendingReward(address _voter) external view returns (uint) {
+        uint _poolPendingReward = validatorsContract.pendingReward(
+            IVotePool(address(this))
+        );
+        uint _rewardForValidator = _poolPendingReward.mul(percent).div(
+            PERCENT_BASE
+        );
+
+        uint _share = accRewardPerShare;
+        if (totalVote > 0) {
+            _share = _poolPendingReward
+                .sub(_rewardForValidator)
+                .mul(COEFFICIENT)
+                .div(totalVote)
+                .add(_share);
+        }
+
+        return
+            _share.mul(voters[_voter].amount).div(COEFFICIENT).sub(
+                voters[_voter].rewardDebt
+            );
+    }
+
+    function deposit() external payable nonReentrant {
+        validatorsContract.withdrawReward();
+
+        uint _pendingReward = accRewardPerShare
+            .mul(voters[msg.sender].amount)
+            .div(COEFFICIENT)
+            .sub(voters[msg.sender].rewardDebt);
+
+        if (msg.value > 0) {
+            voters[msg.sender].amount = voters[msg.sender].amount.add(
+                msg.value
+            );
+            voters[msg.sender].rewardDebt = voters[msg.sender]
+                .amount
+                .mul(accRewardPerShare)
+                .div(COEFFICIENT);
+            totalVote = totalVote.add(msg.value);
+            emit Deposit(msg.sender, msg.value);
+
+            if (state == State.Ready) {
+                validatorsContract.improveRanking();
+            }
+        } else {
+            voters[msg.sender].rewardDebt = voters[msg.sender]
+                .amount
+                .mul(accRewardPerShare)
+                .div(COEFFICIENT);
+        }
+
+        if (_pendingReward > 0) {
+            sendValue(msg.sender, _pendingReward);
+            emit WithdrawVoteReward(msg.sender, _pendingReward);
+        }
+    }
+
+    function exitVote(uint _amount) external nonReentrant {
+        require(_amount > 0, "Value should not be zero");
+        require(_amount <= voters[msg.sender].amount, "Insufficient amount");
+
+        validatorsContract.withdrawReward();
+
+        uint _pendingReward = accRewardPerShare
+            .mul(voters[msg.sender].amount)
+            .div(COEFFICIENT)
+            .sub(voters[msg.sender].rewardDebt);
+
+        totalVote = totalVote.sub(_amount);
+
+        voters[msg.sender].amount = voters[msg.sender].amount.sub(_amount);
+        voters[msg.sender].rewardDebt = voters[msg.sender]
+            .amount
+            .mul(accRewardPerShare)
+            .div(COEFFICIENT);
+
+        if (state == State.Ready) {
+            validatorsContract.lowerRanking();
+        }
+
+        voters[msg.sender].withdrawPendingAmount = voters[msg.sender]
+            .withdrawPendingAmount
+            .add(_amount);
+        voters[msg.sender].withdrawExitBlock = block.number;
+
+        sendValue(msg.sender, _pendingReward);
+
+        emit ExitVote(msg.sender, _amount);
+        emit WithdrawVoteReward(msg.sender, _pendingReward);
     }
 
     function punish() external override onlyPunishContract {
