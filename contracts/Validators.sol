@@ -1,9 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.6.0 <0.8.0;
 
+// #if Mainnet
 import "./Params.sol";
-import "./library/SafeMath.sol";
+// #else
+import "./mock/MockParams.sol";
+// #endif
+// #if Mainnet
 import "./VotePool.sol";
+// #else
+import "./mock/MockVotePool.sol";
+// #endif
+import "./library/SafeMath.sol";
 import "./library/SortedList.sol";
 import "./interfaces/IVotePool.sol";
 import "./interfaces/IValidators.sol";
@@ -112,6 +120,10 @@ contract Validators is Params, SafeSend, IValidators {
             );
             allValidators.push(_validator);
             votePools[_validator] = _pool;
+
+            // #if !Mainnet
+            _pool.setAddress(address(this), address(0));
+            // #endif
 
             _pool.initialize();
         }

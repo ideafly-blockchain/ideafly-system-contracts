@@ -1,5 +1,5 @@
-const SortedList = artifacts.require('MockList');
-const VotePool = artifacts.require('contracts/mock/MockVotePool.sol:VotePool');
+const SortedList = artifacts.require('cache/solpp-generated-contracts/mock/MockList.sol:MockList');
+const VotePool = artifacts.require('cache/solpp-generated-contracts/mock/MockVotePool.sol:VotePool');
 
 const {assert} = require('hardhat');
 
@@ -22,7 +22,7 @@ contract("SortedList test", accounts => {
     }
 
     it('add new value', async () => {
-        let c = await VotePool.new()
+        let c = await VotePool.new(accounts[0], accounts[0], 0, 1, 1)
         await mock.improveRanking(await c.address, {from: accounts[0]})
 
         let list = await mock.list()
@@ -37,7 +37,7 @@ contract("SortedList test", accounts => {
 
         let values = []
         for (let i = 0; i < 30; i++) {
-            let c = await VotePool.new()
+            let c = await VotePool.new(accounts[0], accounts[0], 0, 1, 1)
             values.push(await c.address)
             await mock.improveRanking(await c.address, {from: accounts[0]})
         }
@@ -73,7 +73,7 @@ contract("SortedList test", accounts => {
 
         let values = []
         for (let i = 0; i < 10; i++) {
-            let c = await VotePool.new()
+            let c = await VotePool.new(accounts[0], accounts[0], 0, 1, 1)
             values.push(await c.address)
             await mock.improveRanking(await c.address, {from: accounts[0]})
         }
@@ -91,7 +91,7 @@ contract("SortedList test", accounts => {
 
         let values = []
         for (let i = 0; i < 10; i++) {
-            let c = await VotePool.new()
+            let c = await VotePool.new(accounts[0], accounts[0], 0, 1, 1)
             values.push(await c.address)
             await mock.improveRanking(await c.address, {from: accounts[0]})
         }
@@ -110,7 +110,7 @@ contract("SortedList test", accounts => {
 
         let values = []
         for (let i = 0; i < 10; i++) {
-            let c = await VotePool.new()
+            let c = await VotePool.new(accounts[0], accounts[0], 0, 1, 1)
             await c.changeVote(100)
             values.push(await c.address)
             await mock.improveRanking(await c.address, {from: accounts[0]})
@@ -130,7 +130,7 @@ contract("SortedList test", accounts => {
 
         let values = []
         for (let i = 0; i < 10; i++) {
-            let c = await VotePool.new()
+            let c = await VotePool.new(accounts[0], accounts[0], 0, 1, 1)
             await c.changeVote(100)
             values.push(await c.address)
             await mock.improveRanking(await c.address, {from: accounts[0]})
@@ -150,7 +150,7 @@ contract("SortedList test", accounts => {
 
         let values = []
         for (let i = 0; i < 30; i++) {
-            let c = await VotePool.new()
+            let c = await VotePool.new(accounts[0], accounts[0], 0, 1, 1)
             await c.changeVote(1000)
             values.push(await c.address)
             await mock.improveRanking(await c.address, {from: accounts[0]})

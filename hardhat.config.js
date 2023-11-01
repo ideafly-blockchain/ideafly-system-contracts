@@ -1,5 +1,7 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("@nomiclabs/hardhat-truffle5");
+require("@nomiclabs/hardhat-solpp");
+require("hardhat-contract-sizer");
 
 const prodConfig = {
   Mainnet: true,
@@ -30,6 +32,7 @@ module.exports = {
   },
   networks: {
     hardhat: {
+      hardfork: "berlin",
       allowUnlimitedContractSize: true,
       accounts: {
         mnemonic: "test test test test test test test test test test test junk",
