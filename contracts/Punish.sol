@@ -11,9 +11,9 @@ import "./interfaces/IValidators.sol";
 import "./interfaces/IPunish.sol";
 
 contract Punish is Params, IPunish {
-    uint256 public punishThreshold;
-    uint256 public removeThreshold;
-    uint256 public decreaseRate;
+    uint256 public constant punishThreshold = 24; // When the missedBlocksCounter reaches `punishThreshold`, the currently unclaimed rewards of the validator will be forfeited.
+    uint256 public constant removeThreshold = 48; // When the missedBlocksCounter reaches `removeThreshold`, the validator will be jailed
+    uint256 public constant decreaseCountPerEpoch = 2; // How many blocks were allowed to missing for a validator in one epoch
 
     struct PunishRecord {
         uint256 missedBlocksCounter;
@@ -41,19 +41,12 @@ contract Punish is Params, IPunish {
     }
 
     function initialize() external onlyNotInitialized {
-        punishThreshold = 24;
-        removeThreshold = 48;
-        decreaseRate = 24;
-
         initialized = true;
     }
 
-    function punish(address _val)
-    external
-    onlyMiner
-    onlyInitialized
-    onlyNotPunished
-    {
+    function punish(
+        address _val
+    ) external onlyMiner onlyInitialized onlyNotPunished {
         punished[block.number] = true;
         if (!punishRecords[_val].exist) {
             punishRecords[_val].index = punishValidators.length;
@@ -67,7 +60,9 @@ contract Punish is Params, IPunish {
             _pool.punish();
             // reset validator's missed blocks counter
             punishRecords[_val].missedBlocksCounter = 0;
-        } else if (punishRecords[_val].missedBlocksCounter % punishThreshold == 0) {
+        } else if (
+            punishRecords[_val].missedBlocksCounter % punishThreshold == 0
+        ) {
             IVotePool _pool = validatorsContract.votePools(_val);
             _pool.removeValidatorIncoming();
         }
@@ -75,12 +70,14 @@ contract Punish is Params, IPunish {
         emit LogPunishValidator(_val, block.timestamp);
     }
 
-    function decreaseMissedBlocksCounter(uint256 _epoch)
-    external
-    onlyMiner
-    onlyNotDecreased
-    onlyInitialized
-    onlyBlockEpoch(_epoch)
+    function decreaseMissedBlocksCounter(
+        uint256 _epoch
+    )
+        external
+        onlyMiner
+        onlyNotDecreased
+        onlyInitialized
+        onlyBlockEpoch(_epoch)
     {
         decreased[block.number] = true;
         if (punishValidators.length == 0) {
@@ -89,11 +86,10 @@ contract Punish is Params, IPunish {
 
         for (uint256 i = 0; i < punishValidators.length; i++) {
             if (
-                punishRecords[punishValidators[i]].missedBlocksCounter > removeThreshold / decreaseRate) {
+                punishRecords[punishValidators[i]].missedBlocksCounter > decreaseCountPerEpoch
+            ) {
                 punishRecords[punishValidators[i]].missedBlocksCounter =
-                punishRecords[punishValidators[i]].missedBlocksCounter -
-                removeThreshold /
-                decreaseRate;
+                    punishRecords[punishValidators[i]].missedBlocksCounter - decreaseCountPerEpoch;
             } else {
                 punishRecords[punishValidators[i]].missedBlocksCounter = 0;
             }
@@ -103,12 +99,11 @@ contract Punish is Params, IPunish {
     }
 
     // clean validator's punish record if one vote in
-    function cleanPunishRecord(address _val)
-    external
-    override
-    onlyInitialized
-    {
-        require(address(validatorsContract.votePools(_val)) == msg.sender, "Validator not registered");
+    function cleanPunishRecord(address _val) external override onlyInitialized {
+        require(
+            address(validatorsContract.votePools(_val)) == msg.sender,
+            "Validator not registered"
+        );
         if (punishRecords[_val].missedBlocksCounter != 0) {
             punishRecords[_val].missedBlocksCounter = 0;
         }
