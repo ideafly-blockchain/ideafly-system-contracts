@@ -150,7 +150,7 @@ contract VotePool is Params, ReentrancyGuard, SafeSend, IVotePool {
         emit ConfirmPercentChange(percent);
     }
 
-    function isIdleStateLike() internal view returns (bool) {
+    function isIdleStateLike() public view returns (bool) {
         return
             state == State.Idle ||
             (state == State.Jail && block.number.sub(punishBlk) > JailPeriod);
