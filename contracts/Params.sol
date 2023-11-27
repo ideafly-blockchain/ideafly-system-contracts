@@ -16,7 +16,7 @@ contract Params {
     // System params
 
     // max active validators 
-    uint16 public constant MaxValidators = 21;
+    uint8 public constant MaxValidators = 21;
     // margin threshold for a PoS type of validator
     uint public constant PosMinMargin = 5000 ether;
     // margin threshold for a PoA type of validator

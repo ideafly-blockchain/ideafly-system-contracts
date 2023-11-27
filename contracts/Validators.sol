@@ -101,7 +101,7 @@ contract Validators is Params, SafeSend, IValidators {
         admin = _admin;
 
         count[ValidatorType.Pos] = 0;
-        count[ValidatorType.Poa] = 21;
+        count[ValidatorType.Poa] = MaxValidators;
         backupCount[ValidatorType.Pos] = 0;
         backupCount[ValidatorType.Poa] = 0;
 

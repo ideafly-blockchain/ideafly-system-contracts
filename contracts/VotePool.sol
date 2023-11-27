@@ -48,14 +48,14 @@ contract VotePool is Params, ReentrancyGuard, SafeSend, IVotePool {
     event AddMargin(address indexed sender, uint amount);
     event ChangeState(State indexed state);
     event Exit(address indexed validator);
-    event WithdrawMargin(address indexed sender, uint amount);
+    event WithdrawMargin(address indexed recipient, uint amount);
     event Punish(address indexed validator, uint amount);
     event RemoveIncoming(address indexed validator, uint amount);
     event ExitVote(address indexed sender, uint amount);
-    event WithdrawValidatorReward(address indexed sender, uint amount);
-    event WithdrawVoteReward(address indexed sender, uint amount);
+    event WithdrawValidatorReward(address indexed recipient, uint amount);
+    event WithdrawVoteReward(address indexed recipient, uint amount);
     event Deposit(address indexed sender, uint amount);
-    event Withdraw(address indexed sender, uint amount);
+    event Withdraw(address indexed recipient, uint amount);
 
     struct PercentChange {
         uint newPercent;
@@ -364,6 +364,39 @@ contract VotePool is Params, ReentrancyGuard, SafeSend, IVotePool {
 
         emit ExitVote(msg.sender, _amount);
         emit WithdrawVoteReward(msg.sender, _pendingReward);
+    }
+
+    function withdraw() external nonReentrant {
+        require(
+            block.number.sub(voters[msg.sender].withdrawExitBlock) >
+                WithdrawLockPeriod,
+            "token not released"
+        );
+        require(
+            voters[msg.sender].withdrawPendingAmount > 0,
+            "no vote token to be withdrawed"
+        );
+
+        uint _amount = voters[msg.sender].withdrawPendingAmount;
+        voters[msg.sender].withdrawPendingAmount = 0;
+        voters[msg.sender].withdrawExitBlock = 0;
+
+        sendValue(msg.sender, _amount);
+        emit Withdraw(msg.sender, _amount);
+    }
+
+    function withdrawVoterReward() external nonReentrant {
+        require(voters[msg.sender].amount > 0, "no vote no reward");
+        validatorsContract.withdrawReward();
+
+        uint _accRewards = accRewardPerShare.mul(voters[msg.sender].amount).div(COEFFICIENT);
+        uint _pendingRewards = _accRewards.sub(voters[msg.sender].rewardDebt);
+        // update debt
+        voters[msg.sender].rewardDebt = _accRewards;
+
+        require(_pendingRewards > 0, "no rewards");
+        sendValue(msg.sender, _pendingRewards);
+        emit WithdrawVoteReward(msg.sender, _pendingRewards);
     }
 
     function punish() external override onlyPunishContract {

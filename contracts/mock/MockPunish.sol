@@ -13,7 +13,7 @@ contract MockPunish is Params {
     // clean validator's punish record if one restake in
     function cleanPunishRecord(address)
     external
-    view
+    pure
     onlyInitialized
     returns (bool)
     {

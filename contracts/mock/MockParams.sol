@@ -14,7 +14,7 @@ contract Params {
         public punishContract;
 
     // System params
-    uint16 public constant MaxValidators = 21;
+    uint8 public constant MaxValidators = 21;
 
     uint public constant PosMinMargin = 5 ether;
     uint public constant PoaMinMargin = 1 ether;
