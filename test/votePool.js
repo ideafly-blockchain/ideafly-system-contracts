@@ -54,9 +54,9 @@ contract("VotePool test", accounts => {
 
 
     it("change manager", async () => {
-        let pool = await VotePool.at(await validators.votePools(validator))
+        let pool = await VotePool.at(await validators.votePools(manager))
 
-        let tx = await pool.changeManager(accounts[1], { from: validator })
+        let tx = await pool.changeManager(accounts[1], { from: manager })
         await expectEvent(tx, "ChangeManager", { manager: accounts[1] })
         manager = accounts[1]
     })

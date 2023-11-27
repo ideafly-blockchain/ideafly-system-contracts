@@ -69,11 +69,6 @@ contract VotePool is Params, ReentrancyGuard, SafeSend, IVotePool {
         uint withdrawExitBlock;
     }
 
-    modifier onlyValidator() {
-        require(msg.sender == validator, "Only validator allowed");
-        _;
-    }
-
     modifier onlyManager() {
         require(msg.sender == manager, "Only manager allowed");
         _;
@@ -116,7 +111,7 @@ contract VotePool is Params, ReentrancyGuard, SafeSend, IVotePool {
         validatorsContract.improveRanking();
     }
 
-    function changeManager(address _manager) external onlyValidator {
+    function changeManager(address _manager) external onlyManager {
         manager = _manager;
         emit ChangeManager(_manager);
     }
