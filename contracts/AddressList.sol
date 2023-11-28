@@ -6,11 +6,8 @@ pragma solidity >= 0.6.0 < 0.8.0;
 // NOTE: Never change the sequence of storage variables.
 contract AddressList {
     bool public initialized;
-    bool public devVerifyEnabled;
     address public admin;
     address public pendingAdmin;
-
-    mapping(address => bool) private devs;
 
     //NOTE: make sure this list is not too large!
     address[] blacksFrom;
@@ -104,18 +101,6 @@ contract AddressList {
         rulesLastUpdatedNumber = block.number;
     }
 
-    function enableDevVerify() external onlyAdmin {
-        require(devVerifyEnabled == false, "already enabled");
-        devVerifyEnabled = true;
-        emit EnableStateChanged(true);
-    }
-
-    function disableDevVerify() external onlyAdmin {
-        require(devVerifyEnabled, "already disabled");
-        devVerifyEnabled = false;
-        emit EnableStateChanged(false);
-    }
-
     function commitChangeAdmin(address newAdmin) external onlyAdmin {
         pendingAdmin = newAdmin;
 
@@ -129,22 +114,6 @@ contract AddressList {
         pendingAdmin = address(0);
 
         emit AdminChanged(admin);
-    }
-
-    function addDeveloper(address addr) external onlyAdmin {
-        require(!devs[addr], "already added");
-        devs[addr] = true;
-        emit DeveloperAdded(addr);
-    }
-
-    function removeDeveloper(address addr) external onlyAdmin {
-        require(devs[addr], "not a developer");
-        devs[addr] = false;
-        emit DeveloperRemoved(addr);
-    }
-
-    function isDeveloper(address addr) view external returns (bool) {
-        return devs[addr];
     }
 
     function getBlacksFrom() view external returns (address[] memory) {
