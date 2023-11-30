@@ -46,7 +46,7 @@ contract Punish is Params, IPunish {
 
     function punish(
         address _val
-    ) external onlyMiner onlyInitialized onlyNotPunished {
+    ) external onlyEngine onlyInitialized onlyNotPunished {
         punished[block.number] = true;
         if (!punishRecords[_val].exist) {
             punishRecords[_val].index = punishValidators.length;
@@ -74,7 +74,7 @@ contract Punish is Params, IPunish {
         uint256 _epoch
     )
         external
-        onlyMiner
+        onlyEngine
         onlyNotDecreased
         onlyInitialized
         onlyBlockEpoch(_epoch)

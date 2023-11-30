@@ -28,8 +28,8 @@ contract Params {
     uint public constant WithdrawLockPeriod = 0;
     uint public constant PercentChangeLockPeriod = 0;
 
-    modifier onlyMiner() {
-        require(msg.sender == block.coinbase, "Miner only");
+    modifier onlyEngine() {
+        // require(msg.sender == engineCaller, "Engine only");
         _;
     }
 

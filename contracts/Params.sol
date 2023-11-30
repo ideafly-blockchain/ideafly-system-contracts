@@ -15,6 +15,8 @@ contract Params {
 
     // System params
 
+    // engine caller
+    address private constant engineCaller = address(0x0000000000000000004E506F5320456E67696e65);
     // max active validators 
     uint8 public constant MaxValidators = 21;
     // margin threshold for a PoS type of validator
@@ -36,8 +38,8 @@ contract Params {
     uint public constant PercentChangeLockPeriod = 86400;
     uint constant PERCENT_BASE = 10000;
 
-    modifier onlyMiner() {
-        require(msg.sender == block.coinbase, "Miner only");
+    modifier onlyEngine() {
+        require(msg.sender == engineCaller, "Engine only");
         _;
     }
 

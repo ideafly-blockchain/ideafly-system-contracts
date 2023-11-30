@@ -21,6 +21,9 @@ contract Governance {
 
     Proposal[] passedProposals;
 
+    // engine caller
+    address private constant engineCaller = address(0x0000000000000000004E506F5320456E67696e65);
+
     event AdminChanging(address indexed newAdmin);
     event AdminChanged(address indexed newAdmin);
 
@@ -32,8 +35,8 @@ contract Governance {
         _;
     }
 
-    modifier onlyMiner() {
-        require(msg.sender == block.coinbase, "Miner only");
+    modifier onlyEngine() {
+        require(msg.sender == engineCaller, "Engine only");
         _;
     }
 
@@ -126,7 +129,7 @@ contract Governance {
         return (p.id, p.action, p.from, p.to, p.value, p.data);
     }
 
-    function finishProposalById(uint id) external onlyMiner {
+    function finishProposalById(uint id) external onlyEngine {
         for (uint i = 0; i < passedProposals.length; i++) {
             if (passedProposals[i].id == id) {
                 if (i != passedProposals.length - 1) {

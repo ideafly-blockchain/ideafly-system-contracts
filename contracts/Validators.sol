@@ -271,7 +271,7 @@ contract Validators is Params, SafeSend, IValidators {
     )
         external
         // #if Mainnet
-        onlyMiner
+        onlyEngine
         // #endif
         onlyNotOperated(Operation.UpdateValidators)
         onlyBlockEpoch(epoch)
@@ -321,7 +321,7 @@ contract Validators is Params, SafeSend, IValidators {
         external
         payable
         // #if Mainnet
-        onlyMiner
+        onlyEngine
         // #endif
         onlyNotOperated(Operation.Distribute)
         onlyInitialized
