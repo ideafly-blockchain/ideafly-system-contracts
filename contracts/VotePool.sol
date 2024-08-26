@@ -35,9 +35,9 @@ contract VotePool is Params, ReentrancyGuard, SafeSend, IVotePool {
     uint public exitBlk;
 
     //reward for validator not for voters
-    uint validatorReward;
+    uint public validatorReward;
     //use to calc voter's reward
-    uint accRewardPerShare;
+    uint public accRewardPerShare;
 
     mapping(address => VoterInfo) public voters;
 
